@@ -233,9 +233,13 @@ namespace de4dot.code.deobfuscators.Agile_NET {
 			stackFrameHelper = new StackFrameHelper(module);
 			stackFrameHelper.Find();
 
-			foreach (var type in module.Types) {
-				if (type.FullName == "InitializeDelegate" && DotNetUtils.DerivesFromDelegate(type))
-					AddTypeToBeRemoved(type, "Obfuscator type");
+			// Only remove InitializeDelegate if we're actually decrypting methods
+			// Otherwise, encrypted method bodies may still reference it
+			if (options.DecryptMethods) {
+				foreach (var type in module.Types) {
+					if (type.FullName == "InitializeDelegate" && DotNetUtils.DerivesFromDelegate(type))
+						AddTypeToBeRemoved(type, "Obfuscator type");
+				}
 			}
 
 			proxyCallFixer.Find();

@@ -1,0 +1,87 @@
+diff --git a/de4dot.code/deobfuscators/Agile_NET/MethodsDecrypter.cs b/de4dot.code/deobfuscators/Agile_NET/MethodsDecrypter.cs
+index 1234567..abcdefg 100644
+--- a/de4dot.code/deobfuscators/Agile_NET/MethodsDecrypter.cs
++++ b/de4dot.code/deobfuscators/Agile_NET/MethodsDecrypter.cs
+@@ -421,13 +421,18 @@ namespace de4dot.code.deobfuscators.Agile_NET {
+ 		public bool Decrypt(MyPEImage peImage, ModuleDefMD module, CliSecureRtType csRtType, ref DumpedMethods dumpedMethods) {
+ 			this.peImage = peImage;
+ 			this.csRtType = csRtType;
+ 			this.module = module;
+
+ 			switch (Decrypt2(ref dumpedMethods)) {
+-			case DecryptResult.Decrypted: return true;
+-			case DecryptResult.NotEncrypted: return false;
++			case DecryptResult.Decrypted:
++				Logger.v("Agile.NET: Successfully decrypted methods using static decryption");
++				return true;
++			case DecryptResult.NotEncrypted:
++				Logger.v("Agile.NET: Methods are not encrypted");
++				return false;
+
+ 			case DecryptResult.Error:
+-				Logger.n("Using dynamic method decryption");
++				Logger.n("Agile.NET: Static decryption failed, trying dynamic method decryption");
++				Logger.n("NOTE: Dynamic decryption requires running as 32-bit process");
++				Logger.n("TIP: Try using --an-methods false to skip method decryption");
+ 				byte[] moduleCctorBytes = GetModuleCctorBytes(csRtType);
+ 				dumpedMethods = de4dot.code.deobfuscators.MethodsDecrypter.Decrypt(module, moduleCctorBytes);
+ 				return true;
+@@ -481,17 +486,27 @@ namespace de4dot.code.deobfuscators.Agile_NET {
+
+ 		DecryptResult Decrypt2(ref DumpedMethods dumpedMethods) {
+ 			uint codeHeaderOffset = InitializeCodeHeader();
+-			if (sigType == SigType.Unknown)
++			if (sigType == SigType.Unknown) {
++				Logger.v("Agile.NET: Unknown signature, methods not encrypted");
+ 				return DecryptResult.NotEncrypted;
++			}
+
++			Logger.v("Agile.NET: Signature type = {0}", sigType);
++			Logger.v("Agile.NET: CodeHeader offset = 0x{0:X}", codeHeaderOffset);
++			Logger.v("Agile.NET: Total code size = 0x{0:X}, Num methods = {1}", codeHeader.totalCodeSize, codeHeader.numMethods);
++
+ 			var methodDefTable = peImage.Metadata.TablesStream.MethodTable;
++			var versions = GetCsHeaderVersions(codeHeaderOffset, methodDefTable);
++			Logger.v("Agile.NET: Will try {0} version(s): {1}", versions.Count, string.Join(", ", versions));
+
+-			foreach (var version in GetCsHeaderVersions(codeHeaderOffset, methodDefTable)) {
++			foreach (var version in versions) {
+ 				try {
++					Logger.v("Agile.NET: Trying version {0}...", version);
+ 					if (version == CsHeaderVersion.V10)
+ 						DecryptMethodsOld(methodDefTable, ref dumpedMethods);
+ 					else
+ 						DecryptMethods(codeHeaderOffset, methodDefTable, CreateCsHeader(version), ref dumpedMethods);
++					Logger.v("Agile.NET: SUCCESS with version {0}", version);
+ 					return DecryptResult.Decrypted;
+ 				}
+-				catch {
++				catch (Exception ex) {
++					Logger.v("Agile.NET: Version {0} failed: {1}", version, ex.Message);
+ 				}
+ 			}
+
++			Logger.e("Agile.NET: All static decryption versions failed!");
+ 			return DecryptResult.Error;
+ 		}
+
+@@ -503,11 +518,16 @@ namespace de4dot.code.deobfuscators.Agile_NET {
+ 		uint InitializeCodeHeader() {
+ 			uint codeHeaderOffset = GetCodeHeaderOffset(peImage);
+ 			ReadCodeHeader(codeHeaderOffset);
+ 			sigType = GetSigType(codeHeader.signature);
+
++			Logger.v("Agile.NET: Signature at offset 0x{0:X}: {1}", codeHeaderOffset, BitConverter.ToString(codeHeader.signature));
++			Logger.v("Agile.NET: Initial signature type: {0}", sigType);
++
+ 			if (sigType == SigType.Unknown) {
++				Logger.v("Agile.NET: Trying old code header location...");
+ 				codeHeaderOffset = GetOldCodeHeaderOffset(peImage);
+ 				if (codeHeaderOffset != 0) {
+ 					ReadCodeHeader(codeHeaderOffset);
+ 					sigType = GetSigType(codeHeader.signature);
++					Logger.v("Agile.NET: Old signature at offset 0x{0:X}: {1}", codeHeaderOffset, BitConverter.ToString(codeHeader.signature));
++					Logger.v("Agile.NET: Old signature type: {0}", sigType);
+ 				}
+ 			}
+

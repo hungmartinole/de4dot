@@ -1,5 +1,9 @@
 # Quick Start Guide - Next Steps
 
+## Latest Update
+
+**Fixed!** The `InitializeDelegate` removal issue has been resolved. Partial deobfuscation with `--an-methods false` now works correctly without metadata errors.
+
 ## What to Do Right Now
 
 ### Step 1: Pull Latest Changes
@@ -8,7 +12,10 @@
 git pull
 ```
 
-The latest changes include comprehensive diagnostic logging that will help understand what's happening during deobfuscation attempts.
+The latest changes include:
+- **Fix for InitializeDelegate removal errors** - Partial deobfuscation now works without metadata errors
+- Comprehensive diagnostic logging for troubleshooting
+- Better error messages and helpful tips
 
 ### Step 2: Rebuild in Visual Studio
 

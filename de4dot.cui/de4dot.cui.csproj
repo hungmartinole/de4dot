@@ -2,6 +2,11 @@
 
   <Import Project="..\De4DotCommon.props" />
 
+  <PropertyGroup>
+    <!-- Output both x64 and x86 builds for Agile.NET dynamic decryption -->
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\de4dot.blocks\de4dot.blocks.csproj" />
     <ProjectReference Include="..\de4dot.code\de4dot.code.csproj" />

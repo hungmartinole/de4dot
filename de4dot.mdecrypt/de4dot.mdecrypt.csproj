@@ -4,6 +4,8 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Suppress obsolete API warnings for deobfuscation code -->
+    <NoWarn>$(NoWarn);SYSLIB0032</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

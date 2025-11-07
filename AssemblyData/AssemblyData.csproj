@@ -2,6 +2,11 @@
 
   <Import Project="..\De4DotCommon.props" />
 
+  <PropertyGroup>
+    <!-- Suppress obsolete API warnings for legacy code -->
+    <NoWarn>$(NoWarn);CS0672</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="System.Runtime.Remoting" Condition=" '$(De4DotNetFramework)' == 'true' " />
   </ItemGroup>

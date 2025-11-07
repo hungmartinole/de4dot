@@ -4,6 +4,10 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Allow BinaryFormatter for deobfuscation purposes (required for some obfuscators) -->
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <!-- Suppress obsolete API warnings that are unavoidable when dealing with obfuscated code -->
+    <NoWarn>$(NoWarn);SYSLIB0011;SYSLIB0021;SYSLIB0022;SYSLIB0032;SYSLIB0041;SYSLIB0051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
